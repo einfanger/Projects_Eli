@@ -25,7 +25,7 @@ public class BankApp {
                 listAccounts();
             } else if (choice.equals("0")) {
                 running = false;
-                System.out.println("Peace ✌️ Thanks for banking with Definitely-Not-a-Scam Bank.");
+                System.out.println("Peace. Thanks for banking with Definitely-Not-a-Scam Bank.");
             } else {
                 System.out.println("Invalid choice.");
             }
