@@ -33,7 +33,7 @@ The expected minimum amount of time each Sprint for each category is as follows:
 2-15 - 8:00 IM Cleaned code, refactored menu logic, and improved readability with comments 75
 2-17 - 10:15 MTG Project review and progress check meeting 60
 2-17 - 6:30 TP Integrated additional story elements and improved project organization 60
-2-18 - 10:15 MTG Stand-up meeting and progress discussion 60
+2-18 - 10:15 MTG Stand-up meeting (SICK DID NOT ATTEND)
 2-19 - 7:00 IM Final testing, bug fixes, and gameplay improvements 60
 2-20 - 4:30 TP Documentation and preparation for submission and presentation 60
 
@@ -43,5 +43,5 @@ The expected minimum amount of time each Sprint for each category is as follows:
 |-------------------------------|:------------------------:|
 |IM - Individual Module         |           10              |
 |TP - Team Project              |            4              |
-|MTG - Class Meetings           |            4              |
+|MTG - Class Meetings           |            3              |
 |**TOTAL**                      |            18             |

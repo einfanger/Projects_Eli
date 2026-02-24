@@ -1,169 +1,419 @@
 use std::io::{self, Write};
 
+#[derive(Clone)]
 struct Player {
     hp: i32,
     inv: Vec<String>,
-    ghosts_beaten: bool,
-    snakes_beaten: bool,
+    visited: Visited,
     has_excalibur: bool,
+}
+
+#[derive(Clone)]
+struct Visited {
+    entrance: bool,
+    snake_crypt: bool,
+    haunted_chapel: bool,
+    river_tunnel: bool,
+    sword_chamber: bool,
+}
+
+#[derive(Clone, Copy)]
+enum Room {
+    EntranceHall,
+    SnakeCrypt,
+    HauntedChapel,
+    RiverTunnel,
+    SwordChamber,
 }
 
 fn main() {
     println!("=== Indiana Jones and the Quest for Excalibur ===");
-    println!("Fedora on. Whip ready. Trauma pending.\n");
+    println!("Rain hammers the stone ruins above you.");
+    println!("Your boots splash through mud as you descend into the unknown.\n");
 
-    let mut p = Player {
+let name = "Indiana Jones".to_string();
+
+println!("\nYou are {}.", name);
+println!("Archaeologist. Explorer. Professional bad-decision maker.");
+println!("Your flashlight clicks on… then flickers. Classic.");
+println!("You tighten your grip on the whip at your belt.\n");
+
+    println!("\nAlright, {}.", name);
+    println!("Your flashlight clicks on… then flickers. Classic.");
+    println!("You tighten your grip on the whip at your belt.\n");
+
+    let mut player = Player {
         hp: 100,
         inv: vec!["Whip".to_string(), "Medkit".to_string()],
-        ghosts_beaten: false,
-        snakes_beaten: false,
+        visited: Visited {
+            entrance: false,
+            snake_crypt: false,
+            haunted_chapel: false,
+            river_tunnel: false,
+            sword_chamber: false,
+        },
         has_excalibur: false,
     };
 
+    let mut room = Room::EntranceHall;
+
     loop {
-        println!("\nHP: {} | Inventory: {}", p.hp, p.inv.len());
-        println!("1) Enter the chamber");
-        println!("2) Check inventory");
-        println!("3) Use item");
-        println!("4) Quit");
-
-        match read("> ").as_str() {
-            "1" => chamber(&mut p),
-            "2" => show_inv(&p.inv),
-            "3" => use_item(&mut p),
-            "4" => { println!("You leave. Excalibur stays stuck. Honestly fair."); break; }
-            _ => println!("Pick 1–4. Indy can’t parse chaos."),
-        }
-
-        if p.hp <= 0 {
-            println!("\nYou drop to the floor. The dungeon wins. The snakes are thrilled.");
+        if player.hp <= 0 {
+            println!("\nYour vision blurs. Your knees hit stone.");
+            println!("The ruins don’t care who you are.");
+            println!("Excalibur remains lost… and the darkness closes in.");
             break;
         }
-        if p.has_excalibur {
-            println!("\n🏆 YOU GOT EXCALIBUR 🏆");
-            println!("You walk out a legend. Somewhere, a museum curator screams.");
+        if player.has_excalibur {
+            println!("\n🏆 YOU WON 🏆");
+            println!("Excalibur is in your hands—cold, heavy, *real*.");
+            println!("For a moment, the entire ruin feels… quiet. Like it’s honoring you.");
+            println!("You climb back into the rain as a legend.");
             break;
         }
+
+        show_status(&player);
+
+        room = match room {
+            Room::EntranceHall => entrance_hall(&name, &mut player),
+            Room::SnakeCrypt => snake_crypt(&mut player),
+            Room::HauntedChapel => haunted_chapel(&mut player),
+            Room::RiverTunnel => river_tunnel(&mut player),
+            Room::SwordChamber => sword_chamber(&name, &mut player),
+        };
     }
 }
 
-fn chamber(p: &mut Player) {
-    println!("\n--- THE CHAMBER ---");
-    println!("A hallway splits into three ominous vibes:");
-    println!("1) Snake tunnel");
-    println!("2) Haunted chapel");
-    println!("3) Sword-in-stone room (final)");
-    println!("4) Back");
+
+fn entrance_hall(name: &str, p: &mut Player) -> Room {
+    if !p.visited.entrance {
+        p.visited.entrance = true;
+        println!("\n--- ENTRANCE HALL ---");
+        println!("A massive stone doorway yawns behind you, now swallowed by shadow.");
+        println!("In front: an ancient corridor lined with cracked statues.");
+        println!("One statue’s face looks almost… disappointed.");
+        println!("A draft whispers through the hall like someone breathing.\n");
+        println!("{} mutters: \"This better be worth it.\"", name);
+    } else {
+        println!("\n--- ENTRANCE HALL ---");
+        println!("You’re back where the air is cold but familiar.");
+        println!("The statues watch you like security cameras with trauma.");
+    }
+
+    println!("\nWhere do you go?");
+    println!("1) Left passage (faint hissing sounds)");
+    println!("2) Right passage (old chapel bells… but underground?)");
+    println!("3) Down the stairs (you hear water)");
+    println!("4) Use an item");
+    println!("5) Quit (live to excavate another day)");
 
     match read("> ").as_str() {
-        "1" => snakes(p),
-        "2" => ghosts(p),
-        "3" => finale(p),
-        "4" => println!("You back out slowly. Respect."),
-        _ => println!("The dungeon sighs. Try again."),
+        "1" => Room::SnakeCrypt,
+        "2" => Room::HauntedChapel,
+        "3" => Room::RiverTunnel,
+        "4" => { use_item(p); Room::EntranceHall }
+        "5" => {
+            println!("\nYou turn back.");
+            println!("Some treasures aren’t worth dying for.");
+            std::process::exit(0);
+        }
+        _ => {
+            println!("Your indecision echoes. The ruin waits.");
+            Room::EntranceHall
+        }
     }
 }
 
-fn snakes(p: &mut Player) {
-    println!("\nYou hear a hiss. Then 400 more hisses.");
-    println!("Snakes. So many snakes.");
-    println!("1) Fight with whip");
-    println!("2) Run");
+fn snake_crypt(p: &mut Player) -> Room {
+    println!("\n--- SNAKE CRYPT ---");
+
+    if !p.visited.snake_crypt {
+        p.visited.snake_crypt = true;
+        println!("The passage narrows until the walls nearly brush your shoulders.");
+        println!("Your flashlight beam lands on something moving.");
+        println!("Not one thing.");
+        println!("Many things.\n");
+        println!("Snakes. Coiled. Layered. Breathing like a living carpet.");
+        println!("The smell is ancient dust and fear.\n");
+        println!("A stone pedestal sits beyond them, holding a rusted TORCH.");
+    } else {
+        println!("You return to the crypt. The hissing starts immediately.");
+        println!("The snakes remember you. Unfortunately.");
+    }
+
+    if !has(&p.inv, "Torch") {
+        println!("\nOptions:");
+        println!("1) Grab the torch (risky)");
+        println!("2) Fight through with the whip");
+        println!("3) Back away slowly");
+    } else {
+        println!("\nOptions:");
+        println!("1) Use torch to scare them back");
+        println!("2) Fight through with the whip");
+        println!("3) Back away slowly");
+    }
 
     match read("> ").as_str() {
         "1" => {
-            println!("You go full whip-mode. It works, but you get tagged.");
-            p.hp -= 15;
-            p.snakes_beaten = true;
-            if !has(&p.inv, "Holy Charm") {
-                println!("You find a Holy Charm on a cracked statue.");
-                add(&mut p.inv, "Holy Charm");
+            if !has(&p.inv, "Torch") {
+                println!("\nYou step forward, carefully…");
+                println!("A snake strikes like a spring-loaded nightmare.");
+                p.hp -= 12;
+                println!("You yank your hand back, grab the TORCH anyway. (-12 HP)");
+                add(&mut p.inv, "Torch");
+            } else {
+                println!("\nYou raise the torch. The flame snaps and dances.");
+                println!("The snakes recoil like you just turned on the world’s worst music.");
+                println!("A path opens.");
             }
+            Room::EntranceHall
         }
         "2" => {
-            println!("You run. Fast. Heroic? No. Effective? Yes.");
-            p.hp -= 5;
+            println!("\nYou crack the whip. The sound explodes in the tight tunnel.");
+            println!("Snakes scatter. Some don’t.");
+            p.hp -= 15;
+            println!("You push through, bitten and annoyed. (-15 HP)");
+            Room::EntranceHall
         }
-        _ => println!("You freeze. The snakes judge you for it."),
+        "3" => {
+            println!("You back out. Quietly. Respectfully. Like a person who likes being alive.");
+            Room::EntranceHall
+        }
+        _ => {
+            println!("You hesitate. The snakes do not.");
+            p.hp -= 8;
+            println!("You get tagged. (-8 HP)");
+            Room::EntranceHall
+        }
     }
 }
 
-fn ghosts(p: &mut Player) {
-    println!("\nCandles light on their own. That’s never a good sign.");
-    println!("A ghost knight appears and points a sword at your soul.");
-    println!("1) Fight");
+fn haunted_chapel(p: &mut Player) -> Room {
+    println!("\n--- HAUNTED CHAPEL ---");
+
+    if !p.visited.haunted_chapel {
+        p.visited.haunted_chapel = true;
+        println!("You step into a ruined chapel carved beneath the earth.");
+        println!("As your boot touches the stone… candles ignite on their own.");
+        println!("A low hum fills the air, like a choir in another room.\n");
+        println!("A ghostly knight forms from mist, armor clanking with no body inside.");
+        println!("It points a spectral blade at you.");
+    } else {
+        println!("The air is colder here. The candles relight as if expecting you.");
+        println!("The ghost knight returns—patient, offended, and very stabby.");
+    }
+
+    println!("\nWhat do you do?");
+    println!("1) Fight (whip)");
     println!("2) Use Holy Charm (if you have it)");
-    println!("3) Run");
+    println!("3) Run back");
 
     match read("> ").as_str() {
         "1" => {
-            println!("You fight the ghost. That sentence is already bad.");
-            p.hp -= 20;
-            p.ghosts_beaten = true;
+            println!("\nYou swing the whip—");
+            println!("It passes through the ghost like smoke, but the force disrupts it.");
+            println!("The knight retaliates. Cold pain slams into your chest.");
+            p.hp -= 18;
+            println!("You grit your teeth and push forward. (-18 HP)");
+
+            if !has(&p.inv, "Holy Charm") {
+                println!("A small charm drops from the altar, glowing faintly.");
+                add(&mut p.inv, "Holy Charm");
+            }
+            Room::EntranceHall
         }
         "2" => {
             if has(&p.inv, "Holy Charm") {
-                println!("The charm flares. The ghost evaporates like it saw your browser history.");
-                p.ghosts_beaten = true;
+                println!("\nYou hold up the charm.");
+                println!("Light blooms across the chapel.");
+                println!("The ghost freezes… then fractures into mist, like it’s finally exhaling.");
+                println!("Behind the altar, a stone door clicks—somewhere deeper, something opened.");
+                Room::EntranceHall
             } else {
-                println!("You reach for a charm you don’t have. The ghost bonks you.");
+                println!("\nYou reach for a charm you don’t have.");
+                println!("The ghost bonks your soul. Unfair.");
                 p.hp -= 10;
+                println!("(-10 HP)");
+                Room::EntranceHall
             }
         }
         "3" => {
-            println!("You sprint out. The ghost laughs. You hate that.");
+            println!("You retreat. The ghost does not chase you—just watches.");
             p.hp -= 5;
+            println!("You trip on the way out because the ruin is petty. (-5 HP)");
+            Room::EntranceHall
         }
-        _ => println!("The ghost waits. Menacingly."),
+        _ => {
+            println!("You freeze.");
+            println!("The ghost takes that personally.");
+            p.hp -= 12;
+            println!("(-12 HP)");
+            Room::EntranceHall
+        }
     }
 }
 
-fn finale(p: &mut Player) {
-    println!("\n--- THE SWORD-IN-STONE ROOM ---");
-    println!("A stone pedestal. A blade hilt. The air feels… judgey.");
-    println!("A voice whispers: \"Prove you’re worthy.\"");
+fn river_tunnel(p: &mut Player) -> Room {
+    println!("\n--- RIVER TUNNEL ---");
 
-    println!("\nA rival treasure hunter steps out of the shadows.");
-    println!("1) Fight");
-    println!("2) Run (coward route, but valid)");
-    let c = read("> ");
-    if c == "1" {
-        println!("You scrap. It’s messy. You win, but take a hit.");
-        p.hp -= 15;
-    } else if c == "2" {
-        println!("You dodge past him like a football highlight.");
-        p.hp -= 5;
+    if !p.visited.river_tunnel {
+        p.visited.river_tunnel = true;
+        println!("Stone steps descend into a tunnel where water runs like whispers.");
+        println!("The floor is slick. Your flashlight reflects off black water.");
+        println!("A rope bridge crosses a narrow underground river.");
+        println!("On the far side: a heavy door etched with a sword-in-stone symbol.");
     } else {
-        println!("You hesitate. He punches you. Classic.");
-        p.hp -= 10;
+        println!("You’re back at the underground river.");
+        println!("The rope bridge sways like it’s nervous.");
     }
 
-    if p.hp <= 0 { return; }
-
-    println!("\nNow the choice:");
-    println!("1) Pull the sword");
-    println!("2) Step back");
+    println!("\nWhat do you do?");
+    println!("1) Cross the bridge");
+    println!("2) Search near the water");
+    println!("3) Go back");
 
     match read("> ").as_str() {
         "1" => {
-            if p.ghosts_beaten || (p.snakes_beaten && has(&p.inv, "Whip")) {
-                println!("The stone loosens… the blade slides free.");
-                add(&mut p.inv, "Excalibur");
-                p.has_excalibur = true;
+            println!("\nYou step onto the bridge.");
+            println!("The rope groans.");
+            println!("Halfway across… the bridge snaps a strand.");
+            if has(&p.inv, "Whip") {
+                println!("You snap the whip around a stone pillar and swing the rest of the way.");
+                println!("Your heart is doing parkour, but you make it.");
+                Room::SwordChamber
             } else {
-                println!("The stone refuses. The room is like: \"nah.\"");
-                p.hp -= 10;
-                println!("A backlash hits you. (-10 HP)");
+                println!("You try to grab the rope—too late.");
+                p.hp -= 30;
+                println!("You slam into shallow water and crawl out, soaked. (-30 HP)");
+                Room::EntranceHall
             }
         }
-        "2" => println!("You step away. The dungeon approves your humility."),
-        _ => println!("The sword does not respond to nonsense."),
+        "2" => {
+            println!("\nYou kneel by the water, scanning the stones.");
+            if !has(&p.inv, "Old Coin") {
+                println!("You find an OLD COIN with a knight’s crest.");
+                add(&mut p.inv, "Old Coin");
+            } else {
+                println!("You find… more wet rocks. Nice.");
+            }
+            Room::RiverTunnel
+        }
+        "3" => Room::EntranceHall,
+        _ => {
+            println!("You stand there and listen to water drip like a countdown.");
+            Room::RiverTunnel
+        }
     }
 }
 
+fn sword_chamber(name: &str, p: &mut Player) -> Room {
+    println!("\n--- SWORD CHAMBER ---");
+
+    if !p.visited.sword_chamber {
+        p.visited.sword_chamber = true;
+        println!("The heavy door scrapes open.");
+        println!("A circular chamber breathes cold air.");
+        println!("At the center: stone pedestal. Sword hilt. Silence.\n");
+        println!("Then a voice: \"Only the worthy may claim the blade.\"");
+    } else {
+        println!("The chamber is still. Waiting.");
+    }
+
+    println!("\nA rival treasure hunter steps out of the shadows.");
+    println!("He grins like he rehearsed it.");
+    println!("\"You’re late,\" he says.\n");
+    println!("1) Fight him");
+    println!("2) Bluff (talk your way past)");
+    println!("3) Run back");
+
+    match read("> ").as_str() {
+        "1" => {
+            println!("\nYou lunge. He swings. You both stumble like action-movie professionals.");
+            p.hp -= 12;
+            println!("You win the scuffle, but take a hit. (-12 HP)");
+        }
+        "2" => {
+            println!("\nYou talk fast: artifacts, curses, bad luck, ‘this place is rigged.’");
+            println!("He hesitates just long enough for you to shoulder past.");
+            p.hp -= 5;
+            println!("He clips you on the way. (-5 HP)");
+        }
+        "3" => {
+            println!("You retreat. The chamber’s silence follows you like a stare.");
+            return Room::RiverTunnel;
+        }
+        _ => {
+            println!("You pause. He punches you. Timing is everything.");
+            p.hp -= 10;
+        }
+    }
+
+    if p.hp <= 0 {
+        return Room::SwordChamber;
+    }
+
+    println!("\nNow the pedestal.");
+    println!("Your hand hovers over the sword hilt.");
+    println!("You feel the weight of every bad decision you’ve ever made.\n");
+
+    println!("Choose:");
+    println!("1) Pull the sword");
+    println!("2) Use an item first");
+    println!("3) Step away");
+
+    match read("> ").as_str() {
+        "1" => attempt_excalibur(name, p),
+        "2" => { use_item(p); Room::SwordChamber }
+        "3" => {
+            println!("You step away. Sometimes the bravest move is not dying today.");
+            Room::RiverTunnel
+        }
+        _ => {
+            println!("The sword does not respond to chaos.");
+            Room::SwordChamber
+        }
+    }
+}
+
+fn attempt_excalibur(name: &str, p: &mut Player) -> Room {
+    let worthy = has(&p.inv, "Holy Charm") || has(&p.inv, "Old Coin");
+
+    if worthy {
+        println!("\nThe stone *shifts*.");
+        println!("A low rumble travels through the chamber like thunder underground.");
+        println!("The sword slides free—smooth, effortless, like it chose you.\n");
+        println!("{} whispers: \"…It’s real.\"", name);
+        add(&mut p.inv, "Excalibur");
+        p.has_excalibur = true;
+        Room::SwordChamber
+    } else {
+        println!("\nYou pull. The sword doesn’t move.");
+        println!("The chamber rejects you like a bouncer with standards.");
+        println!("A shockwave hits your chest.");
+        p.hp -= 15;
+        println!("(-15 HP)");
+        println!("Maybe you need proof of honor… something holy, or a knight’s sign.");
+        Room::SwordChamber
+    }
+}
+
+fn show_status(p: &Player) {
+    println!("\n------------------------------");
+    println!("HP: {}", p.hp);
+    println!("Inventory: {}", if p.inv.is_empty() { "(empty)".to_string() } else { format!("{:?}", p.inv) });
+    println!("------------------------------");
+}
+
 fn use_item(p: &mut Player) {
-    show_inv(&p.inv);
-    let item = read("Type item name (or back): ");
+    println!("\nInventory:");
+    if p.inv.is_empty() {
+        println!("(empty)");
+        return;
+    }
+    for item in &p.inv {
+        println!("- {}", item);
+    }
+    let item = read("Type item name to use (or back): ");
     if item.eq_ignore_ascii_case("back") { return; }
 
     if !has(&p.inv, &item) {
@@ -173,21 +423,17 @@ fn use_item(p: &mut Player) {
 
     match item.as_str() {
         "Medkit" => {
-            println!("You patch yourself up. You are now 20% less doomed.");
+            println!("You wrap bandages and breathe through the pain.");
             p.hp += 25;
             if p.hp > 100 { p.hp = 100; }
+            println!("(+25 HP, max 100)");
             remove(&mut p.inv, "Medkit");
         }
-        "Holy Charm" => println!("It glows faintly. Ghosts probably hate this."),
-        "Whip" => println!("You twirl the whip. Style points: max."),
-        _ => println!("You mess with it. Nothing happens."),
+        "Torch" => println!("You light the torch. The shadows back up a step."),
+        "Holy Charm" => println!("The charm warms in your palm. Ghosts probably hate this."),
+        "Old Coin" => println!("You rub the coin. It feels… significant. Like proof."),
+        _ => println!("You use it. Nothing obvious happens."),
     }
-}
-
-fn show_inv(inv: &Vec<String>) {
-    println!("\nInventory:");
-    if inv.is_empty() { println!("(empty)"); }
-    else { for i in inv { println!("- {}", i); } }
 }
 
 fn add(inv: &mut Vec<String>, item: &str) {
